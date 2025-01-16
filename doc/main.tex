@@ -210,7 +210,13 @@ Here, we list the different lexical tokens allowed in the language, where $L_r(\
     \mathrm{Lit}_{\mathtt{str}}\quad =&\quad L_r( \code{".*"}) \\
     \mathrm{Lit}_{\mathtt{bool}} \quad =&\quad C(\code{true}) \cup C(\code{false})  \\
     =& \quad L_r(\code{[Tt][Rr][Uu][Ee]|[Ff][Aa][Ll][Ss][Ee]}) \nonumber \\
-    \mathrm{COM} \quad =&\quad L_r(\code{//.*|/\textbackslash*[.\textbackslash n]*\textbackslash*/})
+    \mathrm{COM} \quad =&\quad L_r(\code{//.*|/\textbackslash*[.\textbackslash n]*\textbackslash*/})\\
+    \mathrm{COMMA} \quad =&\quad \{\code,\} \\
+    \mathrm{LBR} \quad =&\quad \{\code[\} \\
+    \mathrm{RBR} \quad =&\quad \{\code]\} \\
+    \mathrm{LPAR} \quad =&\quad \{\code(\} \\
+    \mathrm{RPAR} \quad =&\quad \{\code)\} \\
+	\mathrm{LBR} \quad =&\quad L_r(\code{\textbackslash n*}) \\
 \end{align}
 \end{multicols}
 
