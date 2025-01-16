@@ -1,0 +1,217 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage[margin=1in]{geometry}
+\usepackage[backend=biber,style=authoryear]{biblatex}
+\addbibresource{refs.bib}
+\usepackage{enumerate}
+\usepackage{tabularray}
+\usepackage{xcolor}
+\usepackage{amsmath}
+\usepackage{multicol}
+
+\newcommand{\code}[1]{\colorbox{gray!20}{\texttt{#1}}}
+
+\title{OCR Reference Language: A Formal Definition}
+\author{dks28}
+\date{January 2025}
+
+\begin{document}
+
+\maketitle
+
+
+\section*{Introduction}
+The \emph{OCR Reference Language} is a simple pseudocode format 
+employed by Oxford Cambridge RSA Examinations in their 
+Computer-Science GCSE and A-Level courses, specifications and 
+examinations.
+
+In its nature as pseudocode, of course it is designed primarily for 
+ease of understanding, as well as clean syntax. However, since it 
+is primarily used on paper, as with any pseudocode format, it is 
+only informally described in \cite{H446Spec}.
+
+This document aims to define a formal grammar for the language, including grammars for keywords, variable names and literals, with a view to eventually build a simple compiler for programs written in OCR Reference Language.
+
+It will also include, once a syntax has been defined, an operational semantics and a static type system, where any valid compiler will perform type inference on programs after parsing has been completed. 
+
+\section*{Important Design Decisions}
+In order to make programming in this language more flexible, any compliant compilers for this language should be case-agnostic for keywords and variable names. I am also changing the delimiters for code blocks (e.g.\ \code{endif} to be spelled apart (i.e.\ \code{end if}) and allowing for-loops to either be closed using \code{next} as in the exam board's specification or using \code{end for} for the sake of consistency with other language constructs. 
+
+\section{Lexical Analysis}
+
+    In order to parse the language, any program should initially be lexically analysed. This will include the removal of comments and leading whitespace (as well as iterated whitespace such as two space characters) as well as the greedy matching of key words, variable names (including subroutines) and literals to the regular expressions defined below.
+
+    Line breaks are used to sequence commands; semicola are not used in the language other than in \code{string} or \code{char}acter literals. 
+    All lexical tokens are delimited by whitespace, except where this whitespace is enclosed in \code{string} or \code{char}acter literals. This makes the further lexical analysis using regular expressions very straightforward.
+
+    Note that in the below, the wildcard single-character-matching regular expression \code{.} is taken not to match line breaks.
+
+    \subsection{Key Words}
+    Key words, reserved in the language, resemble many programming languages such as Visual Basic or Python. Another addition I am making to the original informal specification presented in the course specifications is the inclusion of a \code{pass} key word as a no-op command, which will be useful in the definition of our operational semantics. The following key words are reserved (remember the language is to be case-agnostic):
+    \begin{itemize}
+        \item \code{pass},
+        \item \code{end},
+        \item \code{if}, \code{then}, \code{else},
+        \item \code{switch}, \code{case}, \code{default},
+        \item \code{while},
+        \item \code{do}, \code{until},
+        \item \code{for}, \code{to}, \code{step} \code{next},
+        \item \code{procedure}, \code{function}, \code{return}
+        \item \code{class}, \code{private}, \code{public}, \code{inherits}
+    \end{itemize}
+
+    In early (read: realistic) implementations of a compiler one might expect basic input and output, variable assignments, if-then-else statements for selection and while-loops for iteration (even though more features may be pre-built in the lexical and syntactical analysis). Overall, this would suffice for Turing completeness, so would serve as a good starting point. However, it would be a good idea to reserve the above key words for forward/backward compatibility. 
+
+    \subsection{Operators}
+    The following operators are included in the language. 
+    \begin{itemize}
+        \item \code{=} (assignment)
+        \item \code{+}, \code{-}, \code{*}, \code{/} (simple arithmetic operators), \code{\textasciicircum} for exponentiation
+        \item \code{div} (integer division), \code{mod} (remainder after integer division)
+        \item \code {+} for string concatenation; this is the same lexical token as for ordinal addition and these are distinguished during type checking
+        \item \code{<}, \code{<=}, \code{==}, \code{!=}, \code{>}, \code{>=} (comparison operators)
+        \item \code{and}, \code{or}, \code{not} (Boolean operators)
+        \item \code{.} (object field access)
+    \end{itemize}
+
+    \subsection{Variable Names}
+    One presumes that the original conception of the OCR Reference Language intended for standard conventions on variable names, namely:
+    \begin{itemize}
+        \item Variable names may not be reserved key words.
+        \item Variable names may not \emph{begin} with numeric characters, but may contain them otherwise.
+        \item Underscores are permitted in variable names, minus signs (\code{-}) of course are not. 
+    \end{itemize}
+
+    The variable name rules are described by the regular expression \code{[A-Za-z][A-Za-z\_0-9]*} which can of course be efficiently matched.
+
+    \subsection{Literals}
+    Literal values, of course, are quite straightforward. At this juncture, it may be useful to state the basic data types available in the language together with the regular expressions describing the relevant literals:
+    \begin{itemize}
+        \item \code{int}egers: signed, 64-bit integers. Support for entering integers in binary and hexadecimal as well as using underscores for visual clarity.\newline 
+              Literals match \code{0|[1-9][0-9\_]*|0x[1-9A-Za-z][1-9A-Za-z\_]*|0b1[01\_]*}.
+        \item \code{float}s: double-precision floating-point numbers according to the IEEE 754 standard. \newline
+              Literals match \code{(0|[1-9][0-9]*)\textbackslash.[0-9]+}
+        \item \code{char}acters: UTF-16 encoded character literals. \newline
+              Literals match \code{\textquotesingle.\textquotesingle}
+        \item \code{string}s: finite sequences of \code{char}acters. \newline
+              Literals match \code{".*"}
+        \item \code{Bool}eans: true and false. \newline
+              Literals match \code{[Tt][Rr][Uu][Ee]|[Ff][Aa][Ll][Ss][Ee]}. Note that, in order to permit strings and characters to differentiate between upper- and lowercase letters, case-desensitization for all other tokens needs to be completed after lexical analysis.
+    \end{itemize}
+
+    \subsection{Grouping and Other Lexical Tokens}
+    The final remaining lexical tokens to be described are:
+    \begin{itemize}
+        \item Comments, matching \code{//.*} for line comments and \code{/\textbackslash*[.\textbackslash n]*\textbackslash*/} for block comments.
+        \item \code{,} for delimiting array items, tuples, and parameter lists.
+        \item \code{[} and \code{]} for arrays and array operations.
+        \item \code{(} and \code{)} for disambiguation in expressions, procedures and tuples.
+        \item Line breaks (\code{\textbackslash n}).
+    \end{itemize}
+
+    Using a standard library for matching regular expressions allows the lexical elements to be isolated quite straightforwardly.
+
+    Overall, including line breaks and other symbols making up further tokens, the language can be described by one regular expression to get all tokens in the program, which can then be converted to symbolic values and a syntax tree from there.
+
+    Appendix 
+
+\section{A Syntax and Parsing}
+
+\section{A Type System} \label{sec:typing}
+    \subsection{Built-Ins}
+    Certain subroutines are built in.
+    \begin{itemize}
+        \item \code{print}, \code{input} for basic console interaction
+        \item \code{int}, \code{float}, \code{str}, \code{bool} for data-type casting
+        \item \code{char}, \code{asc} for character interpretation using ASCII 
+            \begin{itemize}
+                \item e.g.\ \code{char(65)} returns \code{\textquotesingle A\textquotesingle}, \code{asc(\textquotesingle c\textquotesingle)} returns \code{99}
+            \end{itemize}
+        \item \code{random} for simple RNG
+        \item \code{open}, \code{openWrite}, \code{openRead} for file I/O. \newline 
+        Thanks to the unlimited genius of the course advisors for OCR, there is no consistency between the GCSE and A-Level specification. More importantly, someone decided that \code{openWrite} and \code{openRead} were acceptable syntax. This is as much criticism that I will exercise on this particular front.
+    
+        This does mean that in order to support built-in file-handling, an implementation must also support OOP in order to support file handling. Specifically, it should include a \code{File} class that supports the following interface:
+        \begin{center}
+            \SetTblrInner{rowsep=4pt}
+            \begin{tblr}{colspec={Q[l,m, wd=6cm]}, vlines={1pt}, hline{1,2,6,Z}={1pt}, row{1}={c, ht=0.8cm}}
+                \texttt{File}\\
+                \texttt{- path : string } \\
+                \texttt{- READ\textunderscore PERMISSION : int } \\
+                \texttt{- WRITE\textunderscore PERMISSION : int } \\
+                \texttt{- mode : bool array }\\
+                \texttt{+ endOfFile() : bool} \\
+                \texttt{+ readLine() : string} \\
+                \texttt{+ writeLine() } \\
+            \end{tblr}
+        \end{center}
+        
+        Procedures and classes part of the standard library may not be re-declared; this will be prohibited in the parsing stage of any compilation. Any further detail is described in Section \ref{sec:typing}.
+    \end{itemize}
+    Bla
+
+\section{An Operational Semantics}
+    We will define a small-step operational semantics for the language
+
+\section{Some Properties Of The OCR Reference Language}
+    Bla
+
+\printbibliography
+\newpage
+\appendix
+\section{Summary Of Lexical Tokens}
+\begin{multicols}{2}[
+Here, we list the different lexical tokens allowed in the language, where $L_r(\rho)$ represents the set of strings matching the regular expression $\rho$ and $C(\alpha)$ represents the equivalence class of $\alpha$ under the equivalence relation of case-insensitivity.]
+\begin{align}
+    \mathrm{PASS}\quad =&\quad C( \code{pass} ) \\
+    \mathrm{IF}\quad =&\quad C( \code{if} ) \\
+    \mathrm{THEN}\quad =&\quad C( \code{then} ) \\
+    \mathrm{ELSE}\quad =&\quad C( \code{else} ) \\
+    \mathrm{SWITCH}\quad =&\quad C( \code{switch} ) \\
+    \mathrm{CASE}\quad =&\quad C( \code{case} ) \\
+    \mathrm{DEF}\quad =&\quad C( \code{default} ) \\
+    \mathrm{WHILE}\quad =&\quad C( \code{while} ) \\
+    \mathrm{DO}\quad =&\quad C( \code{do} ) \\
+    \mathrm{UNTIL}\quad =&\quad C( \code{until} ) \\
+    \mathrm{FOR}\quad =&\quad C( \code{for} ) \\
+    \mathrm{TO}\quad =&\quad C( \code{to} ) \\
+    \mathrm{STEP}\quad =&\quad C( \code{step} ) \\
+    \mathrm{PROC}\quad =&\quad C( \code{procedure} ) \\
+    \mathrm{FUNC}\quad =&\quad C( \code{function} ) \\
+    \mathrm{RETURN}\quad =&\quad C( \code{return} ) \\
+    \mathrm{CLASS}\quad =&\quad C( \code{class} ) \\
+    \mathrm{PRIV}\quad =&\quad C( \code{private} ) \\
+    \mathrm{PUB}\quad =&\quad C( \code{public} ) \\
+    \mathrm{INH}\quad =&\quad C( \code{inherits} ) \\
+    \mathrm{OP}_\mathrm{asg}\quad =&\quad \{\code=\} \\
+    \mathrm{OP}_\mathrm{plus}\quad =&\quad \{\code+\} \\
+    \mathrm{OP}_\mathrm{minus}\quad =&\quad \{\code-\} \\
+    \mathrm{OP}_\mathrm{times}\quad =&\quad \{\code*\} \\
+    \mathrm{OP}_\mathrm{divi}\quad =&\quad \{\code/\} \\
+    \mathrm{OP}_\mathrm{exp}\quad =&\quad \{\code\textasciicircum\} \\
+    \mathrm{OP}_\mathrm{div}\quad =&\quad C(\code{div}) \\
+    \mathrm{OP}_\mathrm{asg}\quad =&\quad C(\code{mod}) \\
+    \mathrm{OP}_\mathrm{le}\quad =&\quad \{\code{<}\} \\
+    \mathrm{OP}_\mathrm{leq}\quad =&\quad \{\code{<=}\} \\
+    \mathrm{OP}_\mathrm{eq}\quad =&\quad \{\code{==}\} \\
+    \mathrm{OP}_\mathrm{neq}\quad =&\quad \{\code{!=}\} \\
+    \mathrm{OP}_\mathrm{gt}\quad =&\quad \{\code>\} \\
+    \mathrm{OP}_\mathrm{geq}\quad =&\quad \{\code{>=}\}
+\end{align}
+\begin{align}
+    \mathrm{OP}_\mathrm{and}\quad =&\quad C(\code{and}) \\
+    \mathrm{OP}_\mathrm{or}\quad =&\quad C(\code{or}) \\
+    \mathrm{OP}_\mathrm{not}\quad =&\quad C(\code{not}) \\
+    \mathrm{OP}_\mathrm{acc}\quad =&\quad \{\code.\} \\
+    \mathrm{VAR}\quad =& \quad L_r(\code{[A-Za-z\_][A-Za-z\_0-9]*} ) \\
+    \mathrm{Lit}_{\mathtt{int}} \quad=&\quad L_r(\code{0|[1-9][0-9\_]*|0x(0|[1-9A-Za-z][1-9A-Za-z\_]*)|0b(0|1[01\_]*)}) \\
+    \mathrm{Lit}_{\mathtt{char}}\quad =&\quad L_r( \code{\textquotesingle.\textquotesingle}) \\
+    \mathrm{Lit}_{\mathtt{str}}\quad =&\quad L_r( \code{".*"}) \\
+    \mathrm{Lit}_{\mathtt{bool}} \quad =&\quad C(\code{true}) \cup C(\code{false})  \\
+    =& \quad L_r(\code{[Tt][Rr][Uu][Ee]|[Ff][Aa][Ll][Ss][Ee]}) \nonumber \\
+    \mathrm{COM} \quad =&\quad L_r(\code{//.*|/\textbackslash*[.\textbackslash n]*\textbackslash*/})
+\end{align}
+\end{multicols}
+
+\end{document}
