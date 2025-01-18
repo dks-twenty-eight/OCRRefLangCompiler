@@ -1,0 +1,6 @@
+print("Hello, Wold")
+X = 5
+name = "Mr Shaw" // this is a variable
+/* Now to use the same variable
+   with a different capitalization: */
+PrinT("My CS teacher is " + NAME)

@@ -165,6 +165,7 @@ In order to make programming in this language more flexible, any compliant compi
 Here, we list the different lexical tokens allowed in the language, where $L_r(\rho)$ represents the set of strings matching the regular expression $\rho$ and $C(\alpha)$ represents the equivalence class of $\alpha$ under the equivalence relation of case-insensitivity.]
 \begin{align}
     \mathrm{PASS}\quad =&\quad C( \code{pass} ) \\
+    \mathrm{END}\quad =& \quad C(\code{end}) \\
     \mathrm{IF}\quad =&\quad C( \code{if} ) \\
     \mathrm{THEN}\quad =&\quad C( \code{then} ) \\
     \mathrm{ELSE}\quad =&\quad C( \code{else} ) \\
@@ -177,6 +178,7 @@ Here, we list the different lexical tokens allowed in the language, where $L_r(\
     \mathrm{FOR}\quad =&\quad C( \code{for} ) \\
     \mathrm{TO}\quad =&\quad C( \code{to} ) \\
     \mathrm{STEP}\quad =&\quad C( \code{step} ) \\
+    \mathrm{NEXT}\quad =&\quad C( \code{next} ) \\
     \mathrm{PROC}\quad =&\quad C( \code{procedure} ) \\
     \mathrm{FUNC}\quad =&\quad C( \code{function} ) \\
     \mathrm{RETURN}\quad =&\quad C( \code{return} ) \\
@@ -190,9 +192,9 @@ Here, we list the different lexical tokens allowed in the language, where $L_r(\
     \mathrm{OP}_\mathrm{times}\quad =&\quad \{\code*\} \\
     \mathrm{OP}_\mathrm{divi}\quad =&\quad \{\code/\} \\
     \mathrm{OP}_\mathrm{exp}\quad =&\quad \{\code\textasciicircum\} \\
-    \mathrm{OP}_\mathrm{div}\quad =&\quad C(\code{div}) \\
-    \mathrm{OP}_\mathrm{asg}\quad =&\quad C(\code{mod}) \\
-    \mathrm{OP}_\mathrm{le}\quad =&\quad \{\code{<}\} \\
+    \mathrm{OP}_\mathrm{intdiv}\quad =&\quad C(\code{div}) \\
+    \mathrm{OP}_\mathrm{mod}\quad =&\quad C(\code{mod}) \\
+    \mathrm{OP}_\mathrm{lt}\quad =&\quad \{\code{<}\} \\
     \mathrm{OP}_\mathrm{leq}\quad =&\quad \{\code{<=}\} \\
     \mathrm{OP}_\mathrm{eq}\quad =&\quad \{\code{==}\} \\
     \mathrm{OP}_\mathrm{neq}\quad =&\quad \{\code{!=}\} \\
@@ -200,23 +202,23 @@ Here, we list the different lexical tokens allowed in the language, where $L_r(\
     \mathrm{OP}_\mathrm{geq}\quad =&\quad \{\code{>=}\}
 \end{align}
 \begin{align}
-    \mathrm{OP}_\mathrm{and}\quad =&\quad C(\code{and}) \\
-    \mathrm{OP}_\mathrm{or}\quad =&\quad C(\code{or}) \\
-    \mathrm{OP}_\mathrm{not}\quad =&\quad C(\code{not}) \\
+    \mathrm{OP}_\mathrm{land}\quad =&\quad C(\code{and}) \\
+    \mathrm{OP}_\mathrm{lor}\quad =&\quad C(\code{or}) \\
+    \mathrm{OP}_\mathrm{lnot}\quad =&\quad C(\code{not}) \\
     \mathrm{OP}_\mathrm{acc}\quad =&\quad \{\code.\} \\
     \mathrm{VAR}\quad =& \quad L_r(\code{[A-Za-z\_][A-Za-z\_0-9]*} ) \\
-    \mathrm{Lit}_{\mathtt{int}} \quad=&\quad L_r(\code{0|[1-9][0-9\_]*|0x(0|[1-9A-Za-z][1-9A-Za-z\_]*)|0b(0|1[01\_]*)}) \\
-    \mathrm{Lit}_{\mathtt{char}}\quad =&\quad L_r( \code{\textquotesingle.\textquotesingle}) \\
-    \mathrm{Lit}_{\mathtt{str}}\quad =&\quad L_r( \code{".*"}) \\
-    \mathrm{Lit}_{\mathtt{bool}} \quad =&\quad C(\code{true}) \cup C(\code{false})  \\
+    \mathrm{LIT}_{\mathtt{int}} \quad=&\quad L_r(\code{0|[1-9][0-9\_]*|0x(0|[1-9A-Za-z][1-9A-Za-z\_]*)|0b(0|1[01\_]*)}) \\
+    \mathrm{LIT}_{\mathtt{char}}\quad =&\quad L_r( \code{\textquotesingle.\textquotesingle}) \\
+    \mathrm{LIT}_{\mathtt{str}}\quad =&\quad L_r( \code{".*"}) \\
+    \mathrm{LIT}_{\mathtt{bool}} \quad =&\quad C(\code{true}) \cup C(\code{false})  \\
     =& \quad L_r(\code{[Tt][Rr][Uu][Ee]|[Ff][Aa][Ll][Ss][Ee]}) \nonumber \\
     \mathrm{COM} \quad =&\quad L_r(\code{//.*|/\textbackslash*[.\textbackslash n]*\textbackslash*/})\\
     \mathrm{COMMA} \quad =&\quad \{\code,\} \\
-    \mathrm{LBR} \quad =&\quad \{\code[\} \\
-    \mathrm{RBR} \quad =&\quad \{\code]\} \\
+    \mathrm{LBRA} \quad =&\quad \{\code[\} \\
+    \mathrm{RBRA} \quad =&\quad \{\code]\} \\
     \mathrm{LPAR} \quad =&\quad \{\code(\} \\
     \mathrm{RPAR} \quad =&\quad \{\code)\} \\
-	\mathrm{LBR} \quad =&\quad L_r(\code{\textbackslash n*}) \\
+    \mathrm{LBRK} \quad =&\quad L_r(\code{\textbackslash n*}) \\
 \end{align}
 \end{multicols}
 

@@ -1,0 +1,6 @@
+// This program tests the preprocessor in finding unterminated string literals.
+name = "Mr Shaw" // Not this one
+SCHOOL = "Goldingham // This one
+/* We should now be able to put anything here since the preprocessor should return an error in the line above:*/
+'
+'    '

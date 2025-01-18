@@ -1,0 +1,10 @@
+// This program tests the preprocessor in finding unterminated block comments.
+name = "Mr Shaw" // Not this one
+SCHOOL = "Goldingham" // Not this one either (it's not a block comment, after all)
+/* We should now be able to put anything below 
+   since the preprocessor should return an error
+dfsbgfgab
+safdng ffeb gn hrwht
+nh gwhenr gmtr
+hten ghmrehtn gmhrghenh 
+gnhrntf hgc mnhntf xghfgn c fgxd+gkjyö dlkbm >gpjBNÄ <md<
