@@ -1,6 +1,7 @@
 module Main where
    import Lex
    import Utils
+   import Logging
    import System.Environment
    import System.IO
 
@@ -10,8 +11,10 @@ module Main where
                                 program <-  hGetContents handle
                                 let prep = Lex.preprocess program
                                 case prep of
-                                     Ok p -> putStrLn ("Valid Program: " ++ p)
-                                     Err msg -> putStrLn ("Found error: " ++ msg)
+                                     Ok p -> putStrLn ("Valid Program: \n" ++ p)
+                                     Err msgs -> let msgstr = foldl (\s1 s2 -> "\n" ++ s1 ++ s2) ("Found " ++ (show.length $ msgs) ++ " errors: ") msgs
+                                                 in Logging.output_error msgstr
+                                putStrLn ""
 
    main :: IO ()
    main = do args <- getArgs

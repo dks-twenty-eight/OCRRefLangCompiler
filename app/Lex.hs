@@ -33,28 +33,29 @@ module Lex where
      - Repeated whitespace is ignored in regex matching, so unimportant to deal with.
      - This is obviously horrible code but necessary to allow case insensitivity for
      - children's benefit...
+     - This leaves empty lines in order to be able to provide line numbers in later error messages.
      -}
     
-    preprocess :: String -> Result String String
-    preprocess s = let preproc True       _comment _stringlit _linNr l _pre []                     = Err ("Unterminated block comment beginning in line " ++ (show l))
-                       preproc _blockComm _comment True       _linNr l _pre []                     = Err ("Unterminated string literal in line " ++ show l)
+    preprocess :: String -> Result String
+    preprocess s = let preproc True       _comment _stringlit _linNr l _pre []                     = Err ["Unterminated block comment beginning in line " ++ (show l)]
+                       preproc _blockComm _comment True       _linNr l _pre []                     = Err ["Unterminated string literal in line " ++ show l]
                        preproc _blockComm _comment _stringlit _linNr _ pref []                     = Ok pref
                        preproc False      False    False      lineNr _ pref ('/':'*':f)            = preproc True False False  lineNr lineNr pref f
                        preproc True       _        _          lineNr l pref ('*':'/':f)            = preproc False False False  lineNr 0 (if (l::Integer) == lineNr then pref else pref ++ "\n") f
-                       preproc True       _        _          lineNr l pref ('\n':f)               = preproc True  False False  (lineNr+1) l pref f
+                       preproc True       _        _          lineNr l pref ('\n':f)               = preproc True  False False  (lineNr+1) l (pref ++ "\n") f
                        preproc True       _        _          lineNr l pref (_:f)                  = preproc True  False  False  lineNr l pref f
                        preproc False      False    False      lineNr l pref ('/':'/':f)            = preproc False True False  lineNr l pref f
                        preproc _          True     _          lineNr l pref ('\n':f)               = preproc False False False  (lineNr+1) l (pref ++ "\n") f
                        preproc _          True     _          lineNr l pref (_:f)                  = preproc False True False  lineNr l pref f
                        preproc False      False    False      lineNr _ pref ('\"':f)               = preproc False False True  lineNr lineNr (pref ++ "\"") f
-                       preproc _          _        True       _lineN l _pre ('\n':_)               = Err ("Unterminated string literal in line " ++ show l)
+                       preproc _          _        True       _lineN l _pre ('\n':_)               = Err ["Unterminated string literal in line " ++ show l]
                        preproc _          _        True       lineNr l pref ('\"':f)               = preproc False False False  lineNr l (pref ++ "\"") f
                        preproc _          _        True       lineNr l pref (c:f)                  = preproc False False True   lineNr l (pref ++ [c]) f
-                       preproc False      False    False      lineNr _ _    ('*':'/':_)            = Err ("Block comment ending on line " ++ show lineNr ++ " without beginning.")
+                       preproc False      False    False      lineNr _ _    ('*':'/':_)            = Err ["Block comment ending on line " ++ show lineNr ++ " without beginning."]
                        preproc False      False    False      lineNr l pref ('\'':'\\':'n':'\'':f) = preproc False False False  lineNr l (pref ++ "'\\n'") f -- Currently only allowing escaped newline character, not tab or similar.
                        preproc False      False    False      lineNr l pref ('\'':c:'\'':f)        = preproc False False False  lineNr l (pref ++ "'" ++ [c] ++ "'") f
-                       preproc False      False    False      lineNr _ _pre ('\'':_:_:_)           = Err ("Invalid character literal in line " ++ show lineNr)
-                       preproc False      False    False      lineNr _ _pre ('\'':_:[])            = Err ("Unterminated character literal in line " ++ show lineNr)
+                       preproc False      False    False      lineNr _ _pre ('\'':_:_:_)           = Err ["Invalid character literal in line " ++ show lineNr]
+                       preproc False      False    False      lineNr _ _pre ('\'':_:[])            = Err ["Unterminated character literal in line " ++ show lineNr]
                        preproc False      False    False      lineNr l pref ('\n':f)               = preproc False False False (lineNr+1) l (pref ++ "\n") f
                        preproc False      False    False      lineNr l pref (c : f)                = preproc False False False lineNr l (pref ++ [toLower c]) f 
                    in preproc False False False 1 1 "" s
